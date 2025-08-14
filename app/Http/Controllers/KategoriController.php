@@ -123,19 +123,33 @@ class KategoriController extends Controller
     // } 
 
     public function show($id)
-    {
-        if (!is_numeric($id)) {
-            return response()->json(['message' => 'ID tidak valid'], 400);
-        }
-
-        $kategori = Kategori::find($id);
-
-        if (!$kategori) {
-            return response()->json(['message' => 'Kategori tidak ditemukan'], 404);
-        }
-
-        return response()->json($kategori);
+{
+    if (!is_numeric($id)) {
+        return response()->json(['message' => 'ID tidak valid'], 400);
     }
+
+    $kategori = Kategori::find($id);
+    if (!$kategori) {
+        return response()->json(['message' => 'Kategori tidak ditemukan'], 404);
+    }
+
+    return response()->json($kategori);
+}
+
+    // public function show($id)
+    // {
+    //     if (!is_numeric($id)) {
+    //         return response()->json(['message' => 'ID tidak valid'], 400);
+    //     }
+
+    //     $kategori = Kategori::find($id);
+
+    //     if (!$kategori) {
+    //         return response()->json(['message' => 'Kategori tidak ditemukan'], 404);
+    //     }
+
+    //     return response()->json($kategori);
+    // }
 
     // metode lainnya seperti index, store, update, destroy...
 

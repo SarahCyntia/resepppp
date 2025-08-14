@@ -24,6 +24,7 @@ use App\Http\Controllers\KomentarController as ControllersKomentarController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+// Route::post('/tambah', [ResepController::class, 'cek'])->withoutMiddleware(['auth']);
 
 // Authentication Route
 Route::middleware(['auth', 'json'])->prefix('auth')->group(function () {
@@ -71,6 +72,7 @@ Route::middleware(['auth', 'verified', 'json'])->group(function () {
         Route::post('/resep/{id}/favorit', [FavoritController::class, 'toggle']);
         Route::post('/resep/{id}/komentar', [KomentarController::class, 'store']);
         Route::post('/resep/{id}/rating', [RatingController::class, 'store']);
+        Route::put('/resep/{resep}', [ResepController::class, 'update']);
     });
     Route::put('/kategori/{id}', [KategoriController::class, 'tambahKategori'])->withoutMiddleware('can:resep');
     // Route::post('/kategori/{id}', [KategoriController::class, 'store']);
@@ -81,6 +83,8 @@ Route::middleware(['auth', 'verified', 'json'])->group(function () {
     Route::resource('kategori', KategoriController::class);
     // Route::get('/resep', [KategoriController::class, 'show'])->withoutMiddleware('can:resep');
     Route::get('/resep/{resep}', [ResepController::class, 'show']);
+Route::post('/kategori/{id}', [KategoriController::class, 'show']);
+Route::put('/kategori/{id}', [KategoriController::class, 'show']);
 
 
     

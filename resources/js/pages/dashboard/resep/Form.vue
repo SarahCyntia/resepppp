@@ -17,7 +17,10 @@ const props = defineProps({
 const emit = defineEmits(["close", "refresh"]);
 // const emit = defineEmits(["success", "refresh"]);
 
-
+const kategoriId = ref("");
+// const alatList = ref<string[]>([]);
+// const bahanList = ref<string[]>([]);
+// const langkahList = ref<string[]>([]);
 // const resep = ref<any>({
 //   kategori_id: null,
 //   alat: [],     // array relasi alat
@@ -28,10 +31,10 @@ const resep = ref({
   judul: '',
   deskripsi: '',
   waktu_masak: '',
-  kategori: [],
-  alatList: [],
-  bahanList: [],
-  langkahList: [],
+  kategori_id: '',
+  // alatList: [],
+  // bahanList: [],
+  // langkahList: [],
 });
 
 
@@ -42,21 +45,30 @@ watch(() => props.selected, (id) => {
 }, { immediate: true });
 
 function fetchResep(id: string) {
+  console.log("Fetch Resep");
   axios.get(`/resep/${id}`).then(response => {
     const data = response.data.resep;
+    console.log("Data Resep:", data);
 
     resep.value = {
       judul: data.judul || '',
       deskripsi: data.deskripsi || '',
       waktu_masak: data.waktu_masak || '',
-      kategori: data.kategori || [],
-      alatList: data.alatList?.map(a => ({ nama: a.nama })) || [""],
-      bahanList: data.bahanList?.map(b => ({ nama: b.nama })) || [""],
-      langkahList: data.langkahList?.map(l => ({ deskripsi: l.deskripsi })) || [""],
+      kategori_id: data.kategori,
+      
       // alatList: data.alatList || [],
       // bahanList: data.alatList || [],
       // langkahList: data.alatList || [],
     };
+    alatList.value = data.alat?.map((a: any) => a.nama) || [""];
+    bahanList.value = data.bahan?.map((b: any) => b.nama) || [""];
+    langkahList.value = data.langkah?.map((l: any) => l.deskripsi) || [""];
+    console.log(resep.value);
+
+    gambar.value = data.gambar
+        ? ["/storage/" + data.gambar]
+        : [];
+
   }).catch((err) => {
     console.error("Gagal fetch resep:", err);
   });
@@ -81,20 +93,74 @@ const gambar = ref<any>([]);
 //   langkahList: Yup.string().required("langkah harus dipilih"),
 // });
 
-const formSchema = Yup.object({
-  judul: Yup.string().required("Nama Resep harus diisi"),
-  waktu_masak: Yup.string().required("Waktu masak harus diisi"),
-  kategori_id: Yup.string().nullable("Kategori harus dipilih"),
+const kategori = ref(null);
+
+function editKategori(id) {
+  axios.get(`/kategori/${id}`)
+    .then(response => {
+      kategori.value = response.data; // simpan datanya
+    })
+    .catch(error => {
+      console.error(error);
+    });
+}
+
+
+const formSchema = Yup.object().shape({
+  judul: Yup.string()
+    .required("Nama Resep harus diisi")
+    .trim(),
+
+  waktu_masak: Yup.string()
+    .required("Waktu masak harus diisi")
+    .trim(),
+
+  kategori_id: Yup.string()
+    .nullable(),
+  // .required("Kategori harus dipilih"),
+
   alatList: Yup.array()
-    .of(Yup.string().required("Alat tidak boleh kosong"))
+    .of(
+      Yup.string()
+        .required("Alat tidak boleh kosong")
+        .trim()
+    )
     .min(1, "Minimal 1 alat harus diisi"),
+
   bahanList: Yup.array()
-    .of(Yup.string().required("Bahan tidak boleh kosong"))
+    .of(
+      Yup.string()
+        .required("Bahan tidak boleh kosong")
+        .trim()
+    )
     .min(1, "Minimal 1 bahan harus diisi"),
+
   langkahList: Yup.array()
-    .of(Yup.string().required("Langkah tidak boleh kosong"))
+    .of(
+      Yup.string()
+        .required("Langkah tidak boleh kosong")
+        .trim()
+    )
     .min(1, "Minimal 1 langkah harus diisi"),
 });
+
+// const formSchema = Yup.object({
+//   judul: Yup.string().required("Nama Resep harus diisi"),
+//   waktu_masak: Yup.string().required("Waktu masak harus diisi"),
+//   // kategori_id: Yup.string().nullable("Kategori harus dipilih"),
+//   kategori_id: Yup.string()
+//   .nullable()
+//   .required("Kategori harus dipilih"),
+//   alatList: Yup.array()
+//     .of(Yup.string().required("Alat tidak boleh kosong"))
+//     .min(1, "Minimal 1 alat harus diisi"),
+//   bahanList: Yup.array()
+//     .of(Yup.string().required("Bahan tidak boleh kosong"))
+//     .min(1, "Minimal 1 bahan harus diisi"),
+//   langkahList: Yup.array()
+//     .of(Yup.string().required("Langkah tidak boleh kosong"))
+//     .min(1, "Minimal 1 langkah harus diisi"),
+// });
 
 
 
@@ -103,6 +169,7 @@ const formSchema = Yup.object({
 
 function getEdit() {
   block(document.getElementById("form-resep"));
+  console.log("Get Edit")
   ApiService.get("/resep", props.selected)
     .then(({ data }) => {
       console.log(data);
@@ -112,12 +179,12 @@ function getEdit() {
         deskripsi: data.deskripsi || '',
         waktu_masak: data.waktu_masak || '',
         // kategori: data.kategori || [],
-        kategori_id: data.kategori_id || [],
-        alatList: data.resep.alat?.map((a: any) => a.nama) || [""],
-        bahanList : data.resep.bahan?.map((b: any) => b.nama) || [""],
-        langkahList : data.resep.langkah?.map((l: any) => l.deskripsi) || [""],
+        kategori_id: 1,
+        // alatList: data.resep.alat?.map((a: any) => a.nama) || [""],
+        // bahanList: data.resep.bahan?.map((b: any) => b.nama) || [""],
+        // langkahList: data.resep.langkah?.map((l: any) => l.deskripsi) || [""],
         // alatList: data.alatList || [],
-        // bahanList: data.alatList || [],
+          // bahanList: data.alatList || [],
         // langkahList: data.alatList || [],
       }
       alatList.value = data.resep.alat?.map((a: any) => a.nama) || [""];
@@ -139,6 +206,51 @@ function getEdit() {
     });
 }
 
+
+
+function updateResep(id: string) {
+  const formData = new FormData();
+  formData.append("_method", "PUT"); // penting supaya Laravel anggap ini update
+  formData.append("judul", judul.value);
+  formData.append("waktu_masak", waktuMasak.value);
+  formData.append("kategori_id", kategoriId.value);
+
+  // Kirim alatList
+  alatList.value.forEach((alat, index) => {
+    formData.append(`alatList[${index}][nama]`, alat.nama);
+  });
+
+  // Kirim bahanList
+  bahanList.value.forEach((bahan, index) => {
+    formData.append(`bahanList[${index}][nama]`, bahan.nama);
+  });
+
+  // Kirim langkahList
+  langkahList.value.forEach((langkah, index) => {
+    formData.append(`langkahList[${index}][deskripsi]`, langkah.deskripsi);
+  });
+
+  // Kirim gambar jika ada
+  if (gambar.value) {
+    formData.append("gambar", gambar.value);
+  }
+
+  axios.post(`/resep/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  })
+  .then(response => {
+    toast.success("Resep berhasil diperbarui!");
+  })
+  .catch(error => {
+    if (error.response?.data?.errors) {
+      Object.values(error.response.data.errors).forEach((err: any) => {
+        toast.error(err[0]);
+      });
+    } else {
+      toast.error("Terjadi kesalahan saat memperbarui resep.");
+    }
+  });
+}
 
 
 
@@ -339,41 +451,55 @@ function tambahKategori() {
 // });
 
 
+
+// const saveResep = async () => {
+//   try {
+//     const res = await axios.post("/resep", {
+//       kategori_id: kategoriId.value,
+//       alat: alatList.value,
+//       bahan: bahanList.value,
+//       langkah: langkahList.value
+//     });
+
+//     toast.success("Resep berhasil disimpan!");
+//     console.log(res.data);
+//   } catch (err: any) {
+//     toast.error("Gagal menyimpan resep");
+//     console.error(err);
+//   }
+// };
 function submit() {
   const formData = new FormData();
+  console.log(resep.value.kategori_id)
   formData.append("judul", resep.value.judul);
   formData.append("waktu_masak", resep.value.waktu_masak);
+  // formData.append("kategori_id", resep.value.kategori_id);
   formData.append("kategori_id", resep.value.kategori_id);
+  // formData.append("kategori_id", resep.value.kategori_id.id);
+  // formData.append("kategori_id", String(resep.value.kategori_id));
 
-  // Kirim sebagai JSON string array
-  formData.append("alat", JSON.stringify(alatList.value));
-  formData.append("bahan", JSON.stringify(bahanList.value));
-  formData.append("langkah", JSON.stringify(langkahList.value));
 
-  // if (gambar.value.length) {
-  //   formData.append("gambar", gambar.value[0].file);
-  // }
+
+
+
+  // kirim array satu per satu, Laravel otomatis jadi array
+  alatList.value.forEach((alat: string, index: number) => {
+    formData.append(`alat[${index}]`, alat);
+  });
+  bahanList.value.forEach((bahan: string, index: number) => {
+    formData.append(`bahan[${index}]`, bahan);
+  });
+  langkahList.value.forEach((langkah: string, index: number) => {
+    formData.append(`langkah[${index}]`, langkah);
+  });
+
   if (gambar.value.length && gambar.value[0]?.file) {
     formData.append("gambar", gambar.value[0].file);
   }
+
   if (props.selected) {
-    // formData.append("_method", "PUT");
-    formData.append("_method", props.selected ? "PUT" : "POST");
-
+    formData.append("_method", "PUT");
   }
-
-  // formData.append("judul", resep.value.judul);
-  // formData.append("waktu_masak", resep.value.waktu_masak);
-  // formData.append("kategori_id", resep.value.kategori_id);
-  // formData.append("bahan", resep.value.bahan || "");
-  // formData.append("alat", resep.value.alat || "");
-  // formData.append("cara", resep.value.cara || "");
-  // if (gambar.value.length) {
-  //   formData.append("gambar", gambar.value[0].file);
-  // }
-  // if (props.selected) {
-  //   formData.append("_method", "PUT");
-  // }
 
   block(document.getElementById("form-resep"));
   axios({
@@ -399,11 +525,71 @@ function submit() {
     });
 }
 
-onMounted(() => {
-  if (props.selected) {
-    getEdit(); // 🔴 Ini hanya jalan kalau `props.selected` SUDAH ADA
-  }
-});
+// function submit() {
+//   const formData = new FormData();
+//   formData.append("judul", resep.value.judul);
+//   formData.append("waktu_masak", resep.value.waktu_masak);
+//   formData.append("kategori_id", resep.value.kategori_id);
+
+//   // Kirim sebagai JSON string array
+//   formData.append("alat", JSON.stringify(alatList.value));
+//   formData.append("bahan", JSON.stringify(bahanList.value));
+//   formData.append("langkah", JSON.stringify(langkahList.value));
+
+//   // if (gambar.value.length) {
+//   //   formData.append("gambar", gambar.value[0].file);
+//   // }
+//   if (gambar.value.length && gambar.value[0]?.file) {
+//     formData.append("gambar", gambar.value[0].file);
+//   }
+//   if (props.selected) {
+//     // formData.append("_method", "PUT");
+//     formData.append("_method", props.selected ? "PUT" : "POST");
+
+//   }
+
+//   // formData.append("judul", resep.value.judul);
+//   // formData.append("waktu_masak", resep.value.waktu_masak);
+//   // formData.append("kategori_id", resep.value.kategori_id);
+//   // formData.append("bahan", resep.value.bahan || "");
+//   // formData.append("alat", resep.value.alat || "");
+//   // formData.append("cara", resep.value.cara || "");
+//   // if (gambar.value.length) {
+//   //   formData.append("gambar", gambar.value[0].file);
+//   // }
+//   // if (props.selected) {
+//   //   formData.append("_method", "PUT");
+//   // }
+
+//   block(document.getElementById("form-resep"));
+//   axios({
+//     method: "post",
+//     url: props.selected ? `/resep/${props.selected}` : "/resep/store",
+//     data: formData,
+//     headers: {
+//       "Content-Type": "multipart/form-data",
+//     },
+//   })
+//     .then(() => {
+//       emit("close");
+//       emit("refresh");
+//       toast.success("Resep berhasil disimpan");
+//       formRef.value.resetForm();
+//     })
+//     .catch((err: any) => {
+//       formRef.value.setErrors(err.response.data.errors);
+//       toast.error(err.response.data.message);
+//     })
+//     .finally(() => {
+//       unblock(document.getElementById("form-resep"));
+//     });
+// }
+
+// onMounted(() => {
+//   if (props.selected) {
+//     getEdit(); // 🔴 Ini hanya jalan kalau `props.selected` SUDAH ADA
+//   }
+// });
 
 // onMounted(() => {
 //   if (props.selected) {
@@ -413,7 +599,7 @@ onMounted(() => {
 //   }
 // });
 onMounted(() => {
-  if (props.selected) getEdit();
+  // if (props.selected) getEdit();
   loadKategori(); // ← tambahkan ini
 });
 // watch(
@@ -423,12 +609,12 @@ onMounted(() => {
 //   }
 // );
 
-watch(() => props.selected, (newVal) => {
-  if (newVal) {
-    console.log("props.selected berubah jadi:", newVal); // ← HARUS MUNCUL!
-    getEdit();
-  }
-});
+// watch(() => props.selected, (newVal) => {
+//   if (newVal) {
+//     console.log("props.selected berubah jadi:", newVal); // ← HARUS MUNCUL!
+//     getEdit();
+//   }
+// });
 
 </script>
 
@@ -464,7 +650,7 @@ watch(() => props.selected, (newVal) => {
         <label class="form-label fw-bold required">Kategori</label>
         <select class="form-select" v-model="resep.kategori_id" name="kategori_id">
           <option value="" disabled>Pilih kategori</option>
-          <option v-for="kategori in kategoriOptions" :key="kategori.id" :value="resep.kategori_id">
+          <option v-for="kategori in kategoriOptions" :key="kategori.id" :value="kategori.id">
             {{ kategori.text }}
           </option>
         </select>
@@ -600,6 +786,7 @@ watch(() => props.selected, (newVal) => {
     <!-- Footer -->
     <div class="card-footer d-flex">
       <button type="submit" class="btn btn-primary btn-sm ms-auto">Simpan</button>
+      <!-- <button @click="saveResep" class="btn btn-primary">Simpan</button> -->
     </div>
   </VForm>
 </template>

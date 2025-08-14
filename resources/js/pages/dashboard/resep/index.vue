@@ -29,10 +29,19 @@ const columns = [
     cell: (cell) => {
       const bahan = cell.getValue() || [];
       return h('div', {}, bahan.map((b: any, i: number) =>
-        h('div', {}, `${i + 1}. ${b.nama} (${b.jumlah})`)
+        h('div', {}, `${i + 1}. ${b.nama}`)
       ));
     },
   }),
+  // column.accessor("bahan", {
+  //   header: "Bahan-bahan",
+  //   cell: (cell) => {
+  //     const bahan = cell.getValue() || [];
+  //     return h('div', {}, bahan.map((b: any, i: number) =>
+  //       h('div', {}, `${i + 1}. ${b.nama} (${b.jumlah})`)
+  //     ));
+  //   },
+  // }),
 
   // ✅ Tampilkan alat-alat
   column.accessor("alat", {

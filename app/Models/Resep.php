@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany, BelongsToMany};
 class Resep extends Model
 {
     protected $table = 'resep';
-    protected $fillable = ['user_id', 'judul', 'deskripsi', 'gambar', 'waktu_masak'];
+    protected $fillable = ['user_id', 'judul', 'deskripsi', 'gambar', 'waktu_masak','kategori_id'];
 
     public function user(): BelongsTo
     {
@@ -67,21 +67,20 @@ public function kategori()
 }
 
 
+public function alatList()
+{
+    return $this->hasMany(Alat::class);
+}
 
-// Resep.php
-// public function alatList()
-// {
-//     return $this->hasMany(Alat::class);
-// }
+public function bahanList()
+{
+    return $this->hasMany(Bahan::class);
+}
 
-// public function bahanList()
-// {
-//     return $this->hasMany(Bahan::class);
-// }
+public function langkahList()
+{
+    return $this->hasMany(Langkah::class);
+}
 
-// public function langkahList()
-// {
-//     return $this->hasMany(Langkah::class);
-// }
 
 }
