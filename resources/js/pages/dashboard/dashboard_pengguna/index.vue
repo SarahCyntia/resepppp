@@ -5,6 +5,9 @@ import Form from "./Form.vue"
 import { createColumnHelper } from "@tanstack/vue-table"
 import type { Resep } from "@/types"
 import { computed } from 'vue'
+import axios from "axios"
+import { useRouter } from "vue-router"
+import Swal from "sweetalert2"
 
 const column = createColumnHelper<Resep>()
 const paginateRef = ref<any>(null)
@@ -184,20 +187,63 @@ watch(searchQuery, () => {
   paginateRef.value?.refetch()
 })
 // Misal di paginateRef.vue / hooks yang ambil data:
-const fetchData = ({ page, pageSize }) => {
-  return axios.get('/resep', {
-    params: {
-      page,
-      search: searchQuery.value, // kirim ke API
-    }
-  })
-}
+// const fetchData = ({ page, pageSize }) => {
+//   return axios.get('/resep', {
+//     params: {
+//       page,
+//       search: searchQuery.value, // kirim ke API
+//     }
+//   })
+// }
 const filteredData = computed(() => {
   if (!searchQuery.value) return paginateRef.value?.data || []
   return (paginateRef.value?.data || []).filter((item: Resep) =>
     item.judul.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
+
+
+const token = localStorage.getItem("token")
+const router = useRouter()
+
+const handleAddResep = () => {
+  const token = localStorage.getItem("token")
+  if (!token) {
+    Swal.fire({
+      icon: "warning",
+      title: "Login Diperlukan",
+      text: "Silakan login terlebih dahulu untuk menambahkan resep.",
+      showCancelButton: true,
+      confirmButtonText: "Login",
+      cancelButtonText: "Batal"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        router.push("/sign-in")
+      }
+      // Kalau dibatalkan, tidak melakukan apa-apa
+    })
+    return
+  }
+
+  openForm.value = true
+}
+
+axios.post("/resep", {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  }
+})
+
+
+.then(() => {
+  alert("Resep berhasil ditambahkan!")
+})
+// .catch((err) => {
+//   if (err.response?.status === 401) {
+//     alert("Sesi login sudah habis, silakan login ulang.")
+//   }
+// })
+
 </script>
 
 <template>
@@ -218,7 +264,7 @@ const filteredData = computed(() => {
           <button 
             class="hero-cta-btn"
             v-if="!openForm" 
-            @click="handleAddRecipe"
+            @click="handleAddResep"
           >
             <span class="btn-icon">👨‍🍳</span>
             Tambah Resep Baru
@@ -270,11 +316,11 @@ const filteredData = computed(() => {
       <div class="popular-section">
         <div class="popular-header">
           <h3 class="popular-title">Pencarian populer</h3>
-          <span class="popular-time">Diperbarui 03.45</span>
+          <!-- <span class="popular-time">Diperbarui 03.45</span> -->
         </div>
         
         <div class="popular-grid">
-          <div class="recipe-card" @click="searchRecipe('perkedel tahu')">
+          <div class="recipe-card">
             <div class="recipe-image">
               <img src="https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&h=200&fit=crop&crop=center" alt="Perkedel Tahu" />
               <div class="recipe-overlay"></div>
@@ -377,7 +423,7 @@ const filteredData = computed(() => {
   height: 70vh;
   min-height: 500px;
   background: linear-gradient(135deg, 
-    rgba(101, 67, 33, 0.95) 0%, 
+    rgba(70, 19, 46, 0.95) 0%, 
     rgba(139, 90, 43, 0.95) 50%, 
     rgba(160, 108, 63, 0.95) 100%
   ),
@@ -397,7 +443,7 @@ const filteredData = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(218, 139, 255, 0.4);
   z-index: 1;
 }
 
@@ -506,7 +552,7 @@ const filteredData = computed(() => {
 
 /* Menu Section */
 .menu-section {
-  background: #111111;
+  background: hsl(0, 3%, 87%);
   padding: 4rem 2rem;
   position: relative;
 }
@@ -524,7 +570,7 @@ const filteredData = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  color: #D4A574;
+  color: #aa5d0b;
 }
 
 .section-icon {
@@ -535,6 +581,7 @@ const filteredData = computed(() => {
   font-size: 1.1rem;
   opacity: 0.7;
   font-weight: 300;
+  color: #000000;
 }
 
 /* Popular Recipes Section */
@@ -659,7 +706,7 @@ const filteredData = computed(() => {
   left: 1.2rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #D4A574;
+  color: #000000;
   font-size: 1.2rem;
   z-index: 2;
 }
@@ -667,10 +714,10 @@ const filteredData = computed(() => {
 .search-input-coffee {
   width: 100%;
   padding: 1rem 1.2rem 1rem 3rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(212, 165, 116, 0.3);
+  background: hwb(0 8% 92% / 0.05);
+  border: 2px solid #0000004d;
   border-radius: 25px;
-  color: #ffffff;
+  color: hwb(0 0% 100%);
   font-size: 0.95rem;
   outline: none;
   transition: all 0.3s ease;
@@ -757,11 +804,11 @@ const filteredData = computed(() => {
 
 :deep(.coffee-table tbody tr) {
   transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.02);
+  background: #3a1d5005;
 }
 
 :deep(.coffee-table tbody tr:hover) {
-  background: rgba(212, 165, 116, 0.1);
+  background: #ec3ebb1a;
   transform: scale(1.001);
 }
 
@@ -815,7 +862,7 @@ const filteredData = computed(() => {
   color: #D4A574;
   font-size: 0.8rem;
   font-weight: 500;
-  background: rgba(212, 165, 116, 0.15);
+  background: #67297626;
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
   cursor: help;

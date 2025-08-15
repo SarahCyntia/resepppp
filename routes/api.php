@@ -86,6 +86,9 @@ Route::middleware(['auth', 'verified', 'json'])->group(function () {
 Route::post('/kategori/{id}', [KategoriController::class, 'show']);
 Route::put('/kategori/{id}', [KategoriController::class, 'show']);
 
+Route::middleware('auth:sanctum')->post('/resep', [ResepController::class, 'store']);
+
+
 
     
 
